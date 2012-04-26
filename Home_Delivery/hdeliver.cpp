@@ -41,7 +41,7 @@ long long readIntFromBufferAndAdvance()
     }
   for(;p>32;)
     {
-      noRead = noRead * 10 + (p - '0');
+      noRead = (noRead << 3) + (noRead << 1) + (p - '0');
       p=getchar_unlocked();
     }
   if(sign)
