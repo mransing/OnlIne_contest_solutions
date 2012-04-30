@@ -9,4 +9,5 @@ Word Count - http://www.codechef.com/FEB12/problems/WCOUNT/
 Lucky Long - http://www.codechef.com/FEB12/problems/LUCKY5/
 Chef Teams - http://www.codechef.com/JUNE11/problems/CTEAMS/
 Number Game Revisited - http://www.codechef.com/APRIL11/problems/NUMGAME2/
+Shuttle Service - http://www.codechef.com/MARCH12/problems/SHUTTLE
 
