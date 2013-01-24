@@ -15,28 +15,22 @@ int readIntFromBufferAndAdvance(char **InSomeBuf)
   for(;*InBuf==' ' || *InBuf=='\n' || *InBuf == '\0' || *InBuf == '\r';++InBuf);
   for(;*InBuf!=' ' && *InBuf!='\n' && *InBuf != '\0' && *InBuf != '\r';++InBuf)
 	{
-	  noRead = noRead * 10 + (*InBuf - '0');
+	  noRead = (noRead << 3) + (noRead << 1)+ (*InBuf - '0');
 	}
   InBuf++;
   *InSomeBuf = InBuf;
   return noRead;  
 };
 
-int *prime_big_arr;
+int prime_big_arr[10000000]; 
+int primeMap[10000000];
 int lPrimeArr = sizeof(prime_array_numbers)/sizeof(int);
 int maxKnownPrime = 3163;
-int *primeMap;
 int nPrimeNum;
 
 typedef enum _someenum {even,odd,prime} enumType;
 
-inline int isPrime_bare (int n)
-{
-  int i;
-  int q=sqrt(n);
-  for(i = 1; ((n % prime_big_arr[i]) != 0) && (prime_big_arr[i] < q + 1) ;++i);
-  if((prime_big_arr[i] * prime_big_arr[i]) < (n + 1)) return 0;else return 1;
-};
+enumType matEnum[350*350];
 
 int isPrime (int n)
 {
@@ -44,26 +38,32 @@ int isPrime (int n)
 	{
 	  return primeMap[n];
 	}
-  if(isPrime_bare(n) == 0)
+  //We have to run sieve from maxKnownPrime to n
+  int q = sqrt(n);
+  int i;
+  memset((char *)(primeMap + maxKnownPrime + 1),1,sizeof(int) * (n - maxKnownPrime));
+  for(i = 1;prime_big_arr[i] < (q+1);++i)
 	{
-	  return 0;
-	}
-  //We know that this number is prime and we need to find all the numbers between this and the maxKnownPrime;
-  int i=0;
-  for(i=maxKnownPrime + 2;i< n;i+=2)
+	  int start=(maxKnownPrime/prime_big_arr[i] + 1) * prime_big_arr[i];
+	  if((start & 1) == 0) start += prime_big_arr[i];//This is to make sure that start is always odd
+	  int j=start;
+	  int k=(n/prime_big_arr[i] + 1) * prime_big_arr[i];
+	  for(j=start;j< k;j+= 2 * prime_big_arr[i])
+		{
+		  primeMap[j]=0;
+		}
+	};
+  for(i=maxKnownPrime + 2;i< n + 1; i+=2)
 	{
-	  if(isPrime_bare(i) == 0)
-		continue;
-	  maxKnownPrime = i;
-	  prime_big_arr[nPrimeNum] = i;
-	  primeMap[i]=nPrimeNum;
-	  ++nPrimeNum;
+	  if(primeMap[i]!=0)
+		{
+		  primeMap[i]=nPrimeNum;
+		  prime_big_arr[nPrimeNum]=i;
+		  ++nPrimeNum;
+		  maxKnownPrime=i;
+		}
 	}
-  maxKnownPrime = n;
-  prime_big_arr[nPrimeNum] = n;
-  primeMap[n] = nPrimeNum;
-  ++nPrimeNum;
-  return (nPrimeNum - 1);
+  return (primeMap[n]);
 };
  
 typedef struct _stackElem
@@ -72,9 +72,9 @@ typedef struct _stackElem
   int col;
 }stackElem;
 
-stackElem *stack;
+stackElem stack[350*350];
 int stackLen;
-enumType *matEnum;
+
 
 inline int isEmpty(void)
 {
@@ -165,57 +165,13 @@ int isEnd(stackElem n, enumType et, stackElem* retStackElem, int nSize, int *mat
   return 0;
 };
 
-void printStack()
-{
-  int i=0;
-  printf("Current Stack\n");
-  for(i=0;i<=stackLen;++i)
-	{
-	  printf("%d %d %d\n",stack[i].row, stack[i].col);
-	}
-  printf("End of Stack\n");
-};
-
-void printVisit(int * mapVisit, int nSize)
-{
-  int i=0;
-  printf("Current mapVisit\n");
-  for(i=0;i<nSize;++i)
-	{
-	  int j =0;
-	  for(j=0;j<nSize;++j)
-		{
-		  printf("%d ",mapVisit[i * nSize +j ]);
-		}
-	  printf("\n");
-	}
-  printf("End of mapVisit\n");
-};
-
-void printMat(int *mat, int nSize)
-{
-  int i=0;
-  printf("Current mat\n");
-  for(i=0;i<nSize;++i)
-	{
-	  int j =0;
-	  for(j=0;j<nSize;++j)
-		{
-		  printf("%8d ",mat[i * nSize +j ]);
-		}
-	  printf("\n");
-	}
-  printf("End of mat\n");
-};
+int mat[350*350]={0};
+int matVisit[350*350]={0};
 
 int main()
 {
-  struct timeval t1,t2,t3,t4;
-  gettimeofday(&t1,NULL);
-  primeMap = malloc(sizeof(int) * 10000000);
-  memset(primeMap,0,sizeof(int) * 10000000);
-  prime_big_arr = malloc(sizeof(int) * 10000000);
   nPrimeNum=lPrimeArr;
+  memset(primeMap,0,sizeof(int) * nPrimeNum);
   memcpy(prime_big_arr,prime_array_numbers,lPrimeArr * sizeof(int));
 
   int i;
@@ -233,24 +189,16 @@ int main()
   int outBufLen=0;
   read(0,InBuf,lInputBufferLength);
   int nTestCases = readIntFromBufferAndAdvance(&InBuf);
-  double p = 0.0L;
   for(;nTestCases > 0;--nTestCases)
 	{
 	  int nSize=readIntFromBufferAndAdvance(&InBuf);
-	  int i,j,kCur;
-	  int *mat;
+	  int kCur;
 	  long long total=0;
-	  mat = malloc(nSize*nSize*sizeof(int));
-	  matEnum = malloc(nSize * nSize * sizeof(matEnum));
-	  stack = malloc(nSize*nSize*sizeof(stackElem));
-	  int *matVisit = malloc(nSize * nSize * sizeof(int));
 	  memset(matVisit,0,nSize * nSize * sizeof(int));
 	  stackLen=-1;
 	  for(kCur=0;kCur< nSize*nSize;++kCur)
 		{
-		  
 		  mat[kCur]=readIntFromBufferAndAdvance(&InBuf);
-
 		  if(mat[kCur] == 2)
 			{
 			  matEnum[kCur]=prime;
@@ -264,10 +212,7 @@ int main()
 			}
 		  else
 			{
-			  gettimeofday(&t2,NULL);
 			  int ntries = isPrime(mat[kCur]); 
-			  gettimeofday(&t3,NULL);
-			  p+=((t3.tv_sec - t2.tv_sec) * 1000000 + (t3.tv_usec - t2.tv_usec))/1000000.0;
 			  if(ntries != 0)
 				{
 				  mat[kCur]=ntries;
@@ -317,27 +262,12 @@ int main()
 				  curPoint = pop();
 				  continue;
 				}
-#ifdef __TEST__
-			  printf("New visited is %d %d \n",newStElem.row, newStElem.col);
-#endif  
 			  matVisit[newStElem.row *nSize+ newStElem.col] = 1;
 			  push(curPoint);
 			  push(newStElem);
 			  curPoint = newStElem;
 			}
-#ifdef __TEST__
-		  printf("Total after visiting Node %d %d is %d\n",i,j,total);
-		  printVisit(matVisit,nSize);
-#endif
 		}
-	  gettimeofday(&t4,NULL);
-#ifdef __TEST__
-	  printMat(mat,nSize);
-#endif	  
-	  free(stack);
-	  free(mat);
-	  free(matEnum);
-	  free(matVisit);
 	  int tempBufLen=sprintf(tempOutBuf,"%llu\n",total);
 	  tempOutBuf=tempOutBuf + tempBufLen;
 	  outBufLen+=tempBufLen;
@@ -345,10 +275,5 @@ int main()
   write(1,OutBuf,outBufLen);
   free(InOrigBuf);
   free(OutBuf);
-  free(prime_big_arr);
-  free(primeMap);
-  //printf("%f ",((t2.tv_sec - t1.tv_sec) * 1000000 + (t2.tv_usec - t1.tv_usec))/1000000.0);
-  printf("%f ",p);
-  //printf("%f ",((t4.tv_sec - t3.tv_sec) * 1000000 + (t4.tv_usec - t3.tv_usec))/1000000.0);
   return 0;
 }
