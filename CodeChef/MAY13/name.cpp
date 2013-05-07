@@ -4,34 +4,32 @@
 #include <stdio.h>
 
 int main(){
+  std::multiset<char> multset;
   int nTestCases;
-  char par1[40001],par2[40001];
-  scanf("%d",&nTestCases);
+  scanf("%d\n",&nTestCases);
+  char c;
   for(;nTestCases > 0;nTestCases--){
-	scanf("%s %s",par1,par2);
-	int len1=strlen(par1);
-	std::multiset<char> multset(par1,par1+len1);
-	char *tempPar2=par2;
-	char c;
-	while((c = *tempPar2++) != 0){
+	while((c = getchar_unlocked()) != '\n'){
+	  if(c==' '){
+		continue;
+	  }
 	  multset.insert(c);
 	};
 	int nChildren=0;
-	scanf("%d",&nChildren);
+	scanf("%d\n",&nChildren);
 	bool child_not_found=false;
 	for(;nChildren > 0;--nChildren){
-	  char child[40001];
-	  scanf("%s",child);
 	  if(child_not_found){
 		continue;
 	  }
-	  char* tempChildPtr=child;
-	  char c;
-	  while((c=*tempChildPtr++) != 0){
+	  while( (c=getchar_unlocked()) != '\n') {
+		if(child_not_found){
+		  continue;
+		}
 		std::multiset<char>::iterator iterMult=multset.find(c);
 		if( iterMult == multset.end()){
 		  child_not_found=true;
-		  break;
+		  continue;
 		}
 		multset.erase(iterMult);
 	  }
