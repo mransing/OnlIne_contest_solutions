@@ -30,13 +30,6 @@ bool someStrFunc(std::string lhs, std::string rhs)
 bool somefunc(pairIntInt lhs,pairIntInt rhs)
 {
   return  (lhs.second < rhs.second);
-  // if(lhs.second > rhs.second)
-  // 	return false;
-  // if(lhs.first < rhs.first)
-  // 	return true;
-  // if(lhs.first > rhs.first)
-  // 	return false;
-  return false;
 };
 
 int main()
