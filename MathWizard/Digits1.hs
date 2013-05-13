@@ -1,0 +1,1 @@
+main = print $ length $ show $ foldl1 (*) [1..100]
